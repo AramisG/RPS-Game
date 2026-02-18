@@ -1,64 +1,50 @@
-import java.util.*;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
 
-/**
- * Trainer class - represents AI opponents.
- * Demonstrates INHERITANCE (extends Combatant).
- */
 public class Trainer extends Combatant {
-    private List<Strat> strategyPool;
+    private List<Strat> strategies;
     private Random rand;
 
-    public Trainer(String name, List<Strat> strategyPool) {
-        super(name, 5);  // Start with 5 hearts
-        this.strategyPool = new ArrayList<>(strategyPool);
+    public Trainer(String name, List<Strat> strategies) {
+        super(name, 5);
+        this.strategies = strategies;
         this.rand = new Random();
     }
 
-    // POLYMORPHISM: Implementing abstract method from parent
     @Override
     public Moves selectMove(Scanner scanner) {
-        if (strategyPool.isEmpty()) {
-            return Moves.ROCK; // fallback
+        if (strategies == null || strategies.isEmpty()) {
+            return Moves.ROCK;
         }
 
-        Strat chosen = strategyPool.get(rand.nextInt(strategyPool.size()));
+        Strat chosen = strategies.get(rand.nextInt(strategies.size()));
 
         switch (chosen) {
-            case ALWAYS_ROCK:
-                return Moves.ROCK;
-            case ALWAYS_PAPER:
-                return Moves.PAPER;
-            case ALWAYS_SCISSORS:
-                return Moves.SCISSORS;
+            case ALWAYS_ROCK: return Moves.ROCK;
+            case ALWAYS_PAPER: return Moves.PAPER;
+            case ALWAYS_SCISSORS: return Moves.SCISSORS;
+
             case RANDOM:
-                Moves[] allMoves = Moves.values();
-                return allMoves[rand.nextInt(allMoves.length)];
+                Moves[] all = Moves.values();
+                return all[rand.nextInt(all.length)];
+
             case COUNTER_ROCK:
-                // 70% paper, 30% random
-                if (rand.nextInt(100) < 70) {
-                    return Moves.PAPER;
-                } else {
-                    Moves[] moves = Moves.values();
-                    return moves[rand.nextInt(moves.length)];
-                }
+                return (rand.nextInt(100) < 70) ? Moves.PAPER : randomMove();
+
             case COUNTER_PAPER:
-                // 70% scissors, 30% random
-                if (rand.nextInt(100) < 70) {
-                    return Moves.SCISSORS;
-                } else {
-                    Moves[] moves = Moves.values();
-                    return moves[rand.nextInt(moves.length)];
-                }
+                return (rand.nextInt(100) < 70) ? Moves.SCISSORS : randomMove();
+
             case COUNTER_SCISSORS:
-                // 70% rock, 30% random
-                if (rand.nextInt(100) < 70) {
-                    return Moves.ROCK;
-                } else {
-                    Moves[] moves = Moves.values();
-                    return moves[rand.nextInt(moves.length)];
-                }
+                return (rand.nextInt(100) < 70) ? Moves.ROCK : randomMove();
+
             default:
                 return Moves.ROCK;
         }
+    }
+
+    private Moves randomMove() {
+        Moves[] all = Moves.values();
+        return all[rand.nextInt(all.length)];
     }
 }

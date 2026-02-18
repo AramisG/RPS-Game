@@ -1,128 +1,88 @@
-import java.util.*;
+import java.util.Scanner;
 
-/**
- * Player class - represents the human player.
- * Demonstrates INHERITANCE (extends Combatant).
- */
 public class Player extends Combatant {
     private int coins;
     private boolean hasTiebreaker;
-    private boolean predictionForNextRound;
-    private Moves lastOpponentMove;
-    
+    private boolean predictionNextRound;
+
     public Player(String name) {
-        super(name, 5);  // Start with 5 hearts
-        this.coins = 0;
-        this.hasTiebreaker = false;
-        this.predictionForNextRound = false;
-        this.lastOpponentMove = null;
+        super(name, 5);
+        coins = 0;
+        hasTiebreaker = false;
+        predictionNextRound = false;
     }
-    
-    // POLYMORPHISM: Implementing abstract method from parent
+
     @Override
     public Moves selectMove(Scanner scanner) {
         System.out.println("\nChoose your move:");
-        System.out.println("1. Rock");
-        System.out.println("2. Paper");
-        System.out.println("3. Scissors");
-        System.out.println("4. Lizard");
-        System.out.println("5. Spock");
-        System.out.print("> ");
-        
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // consume newline
-        
-        Moves playerMove;
+        System.out.println("1) Rock");
+        System.out.println("2) Paper");
+        System.out.println("3) Scissors");
+        System.out.println("4) Lizard");
+        System.out.println("5) Spock");
+
+        int choice = readIntInRange(scanner, 1, 5);
+
         switch (choice) {
-            case 1:
-                playerMove = Moves.ROCK;
-                break;
-            case 2:
-                playerMove = Moves.PAPER;
-                break;
-            case 3:
-                playerMove = Moves.SCISSORS;
-                break;
-            case 4:
-                playerMove = Moves.LIZARD;
-                break;
-            case 5:
-                playerMove = Moves.SPOCK;
-                break;
-            default:
-                System.out.println("Invalid choice! Defaulting to Rock.");
-                playerMove = Moves.ROCK;
+            case 1: return Moves.ROCK;
+            case 2: return Moves.PAPER;
+            case 3: return Moves.SCISSORS;
+            case 4: return Moves.LIZARD;
+            default: return Moves.SPOCK;
         }
-        
-        return playerMove;
     }
-    
-    // Coin management
-    public int getCoins() {
-        return coins;
-    }
-    
+
+    // -------- Coins --------
+    public int getCoins() { return coins; }
+
     public void addCoins(int amount) {
         coins += amount;
-        System.out.println("💰 +" + amount + " coins! (Total: " + coins + ")");
+        System.out.println("+" + amount + " coins (Total: " + coins + ")");
     }
-    
+
     public boolean spendCoins(int amount) {
-        if (coins >= amount) {
-            coins -= amount;
-            System.out.println("💰 -" + amount + " coins (Remaining: " + coins + ")");
-            return true;
-        }
-        return false;
+        if (coins < amount) return false;
+        coins -= amount;
+        return true;
     }
-    
-    // Tiebreaker perk
-    public boolean hasTiebreaker() {
-        return hasTiebreaker;
-    }
-    
-    public void addTiebreaker() {
-        hasTiebreaker = true;
-    }
-    
-    public void useTiebreaker() {
-        hasTiebreaker = false;
-    }
-    
-    // Prediction perk (for next round only)
-    public boolean hasPredictionForNextRound() {
-        return predictionForNextRound;
-    }
-    
-    public void activatePredictionForNextRound() {
-        predictionForNextRound = true;
-    }
-    
-    public void clearPredictionForNextRound() {
-        predictionForNextRound = false;
-    }
-    
-    // Last opponent move tracking
-    public void setLastOpponentMove(Moves move) {
-        this.lastOpponentMove = move;
-    }
-    
-    public Moves getLastOpponentMove() {
-        return lastOpponentMove;
-    }
-    
+
+    // -------- Perks --------
+    public boolean hasTiebreaker() { return hasTiebreaker; }
+    public void giveTiebreaker() { hasTiebreaker = true; }
+    public void useTiebreaker() { hasTiebreaker = false; }
+
+    public boolean hasPredictionForNextRound() { return predictionNextRound; }
+    public void activatePredictionForNextRound() { predictionNextRound = true; }
+    public void clearPredictionForNextRound() { predictionNextRound = false; }
+
     public void showStatus() {
-        System.out.println("\n┌─────────────────────────────────┐");
-        System.out.println("│ " + getName() + "'s Status");
-        System.out.println("├─────────────────────────────────┤");
-        System.out.println("│ ❤️  Hearts: " + getHearts() + "/" + getMaxHearts());
-        System.out.println("│ 💰 Coins: " + coins);
-        if (hasTiebreaker) {
-            System.out.println("│ ⚡ Tiebreaker: ACTIVE");
+        System.out.println("\n--- " + getName() + " ---");
+        System.out.println("Hearts: " + getHearts() + "/" + getMaxHearts());
+        System.out.println("Coins: " + coins);
+        System.out.println("Tiebreaker: " + (hasTiebreaker ? "YES" : "NO"));
+        System.out.println("Prediction next round: " + (predictionNextRound ? "YES" : "NO"));
+    }
+
+    // -------- Input Helper (prevents crashes) --------
+    private int readIntInRange(Scanner scanner, int min, int max) {
+        while (true) {
+            System.out.print("> ");
+
+            if (!scanner.hasNextInt()) {
+                System.out.println("Please enter a number.");
+                scanner.nextLine(); // throw away bad input
+                continue;
+            }
+
+            int value = scanner.nextInt();
+            scanner.nextLine(); // consume newline
+
+            if (value < min || value > max) {
+                System.out.println("Enter a number from " + min + " to " + max + ".");
+                continue;
+            }
+
+            return value;
         }
-        if (predictionForNextRound) {
-            System.out.println("│ 🔮 Prediction: NEXT ROUND");
-        }
-        System.out.println("└─────────────────────────────────┘");
     }
 }
