@@ -32,7 +32,7 @@ public class Player extends Combatant {
         }
     }
 
-    // -------- Coins --------
+    // Coins
     public int getCoins() { return coins; }
 
     public void addCoins(int amount) {
@@ -46,7 +46,7 @@ public class Player extends Combatant {
         return true;
     }
 
-    // -------- Perks --------
+    // Perks
     public boolean hasTiebreaker() { return hasTiebreaker; }
     public void giveTiebreaker() { hasTiebreaker = true; }
     public void useTiebreaker() { hasTiebreaker = false; }
@@ -63,19 +63,19 @@ public class Player extends Combatant {
         System.out.println("Prediction next round: " + (predictionNextRound ? "YES" : "NO"));
     }
 
-    // -------- Input Helper (prevents crashes) --------
+    // Input Helper
     private int readIntInRange(Scanner scanner, int min, int max) {
         while (true) {
             System.out.print("> ");
 
             if (!scanner.hasNextInt()) {
                 System.out.println("Please enter a number.");
-                scanner.nextLine(); // throw away bad input
+                scanner.nextLine();
                 continue;
             }
 
             int value = scanner.nextInt();
-            scanner.nextLine(); // consume newline
+            scanner.nextLine();
 
             if (value < min || value > max) {
                 System.out.println("Enter a number from " + min + " to " + max + ".");

@@ -3,7 +3,7 @@ public enum Strat {
     ALWAYS_PAPER,
     ALWAYS_SCISSORS,
     RANDOM,
-    COUNTER_ROCK,    // favors paper to counter rock
-    COUNTER_PAPER,   // favors scissors to counter paper
-    COUNTER_SCISSORS // favors rock to counter scissors
+    COUNTER_ROCK,
+    COUNTER_PAPER,
+    COUNTER_SCISSORS
 }

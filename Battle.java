@@ -25,8 +25,22 @@ public class Battle {
     }
 
     public static boolean battle(Player player, Combatant opponent, Scanner scanner, boolean isTutorial) {
-        System.out.println("\n=== BATTLE START ===");
+        System.out.println("\nBATTLE START");
         System.out.println(player.getName() + " VS " + opponent.getName());
+        
+        // Show trainer special abilities
+        if (opponent instanceof Trainer) {
+            Trainer t = (Trainer) opponent;
+            if (opponent.getMaxHearts() > 5) {
+                System.out.println("[" + opponent.getName() + " has " + opponent.getMaxHearts() + " hearts!]");
+            }
+            if (t.shouldPredictThisRound(1)) {
+                System.out.println("[" + opponent.getName() + " can predict your moves!]");
+            }
+            if (t.hasTiebreaker()) {
+                System.out.println("[" + opponent.getName() + " has a tiebreaker!]");
+            }
+        }
 
         player.resetHearts();
         opponent.resetHearts();
@@ -39,32 +53,55 @@ public class Battle {
             System.out.println(opponent.getName() + " hearts: " + opponent.getHearts());
             System.out.println("Coins: " + player.getCoins());
 
-            // Prediction perk
-            Moves predicted = null;
-            boolean predictionActive = player.hasPredictionForNextRound();
-            if (predictionActive) {
-                System.out.println("\nPrediction active! Guess their move:");
+            // PLAYER Prediction perk
+            Moves playerPredicted = null;
+            boolean playerPredictionActive = player.hasPredictionForNextRound();
+            if (playerPredictionActive) {
+                System.out.println("\nYour Prediction is active! Guess their move:");
                 System.out.println("1) Rock  2) Paper  3) Scissors  4) Lizard  5) Spock");
                 int guess = readIntInRange(scanner, 1, 5);
-                predicted = numberToMove(guess);
+                playerPredicted = numberToMove(guess);
                 player.clearPredictionForNextRound();
             }
 
+            // TRAINER Prediction (if they have it)
+            Moves trainerPredicted = null;
+            boolean trainerPredictionActive = false;
+            if (opponent instanceof Trainer) {
+                Trainer t = (Trainer) opponent;
+                if (t.shouldPredictThisRound(round)) {
+                    trainerPredicted = t.predictPlayerMove();
+                    trainerPredictionActive = true;
+                    System.out.println("\n[" + opponent.getName() + " is predicting your move...]");
+                }
+            }
+
+            // Get moves
             Moves playerMove = player.selectMove(scanner);
             Moves opponentMove = opponent.selectMove(scanner);
 
             System.out.println(player.getName() + " chose: " + playerMove);
             System.out.println(opponent.getName() + " chose: " + opponentMove);
 
-            boolean predictionCorrect = predictionActive && (predicted == opponentMove);
-            if (predictionActive) {
-                System.out.println(predictionCorrect ? "Prediction CORRECT!" : "Prediction wrong.");
+            // Check player prediction
+            boolean playerPredictionCorrect = playerPredictionActive && (playerPredicted == opponentMove);
+            if (playerPredictionActive) {
+                System.out.println(playerPredictionCorrect ? "Your prediction CORRECT!" : "Your prediction wrong.");
+            }
+
+            // Check trainer prediction
+            boolean trainerPredictionCorrect = trainerPredictionActive && (trainerPredicted == playerMove);
+            if (trainerPredictionActive) {
+                System.out.println(trainerPredictionCorrect ? 
+                    "[" + opponent.getName() + " predicted correctly!]" : 
+                    "[" + opponent.getName() + "'s prediction was wrong.]");
             }
 
             int result = compare(playerMove, opponentMove);
 
             if (result == 1) {
-                int damage = predictionCorrect ? 2 : 1;
+                // Player wins
+                int damage = playerPredictionCorrect ? 2 : 1;
                 opponent.takeDamage(damage);
                 System.out.println("You win the round! " + opponent.getName() + " takes " + damage + " damage.");
 
@@ -73,27 +110,48 @@ public class Battle {
                 }
 
             } else if (result == -1) {
-                player.takeDamage(1);
-                System.out.println("You lose the round! You take 1 damage.");
+                // Opponent wins
+                int damage = trainerPredictionCorrect ? 2 : 1;
+                player.takeDamage(damage);
+                System.out.println("You lose the round! You take " + damage + " damage.");
 
                 if (!isTutorial || !opponent.isAlive()) {
                     player.addCoins(1);
                 }
 
-                // shop appears when you lose (if still alive)
+                // Shop appears when you lose (if still alive)
                 if (player.isAlive() && !isTutorial) {
                     inBattleShop(player, scanner);
                 }
 
             } else {
-                // tie
-                if (player.hasTiebreaker()) {
+                // Tie
+                boolean playerHasTiebreaker = player.hasTiebreaker();
+                boolean trainerHasTiebreaker = false;
+                if (opponent instanceof Trainer) {
+                    trainerHasTiebreaker = ((Trainer) opponent).hasTiebreaker();
+                }
+                
+                if (playerHasTiebreaker && trainerHasTiebreaker) {
+                    System.out.println("Tie! Both have tiebreakers - they cancel out!");
+                    player.useTiebreaker();
+                    ((Trainer) opponent).useTiebreaker();
+                } else if (playerHasTiebreaker) {
                     System.out.println("Tie! Your tiebreaker activates.");
                     opponent.takeDamage(1);
                     player.useTiebreaker();
-
                     if (!isTutorial || !opponent.isAlive()) {
                         player.addCoins(2);
+                    }
+                } else if (trainerHasTiebreaker) {
+                    System.out.println("Tie! " + opponent.getName() + "'s tiebreaker activates.");
+                    player.takeDamage(1);
+                    ((Trainer) opponent).useTiebreaker();
+                    if (!isTutorial || !opponent.isAlive()) {
+                        player.addCoins(1);
+                    }
+                    if (player.isAlive() && !isTutorial) {
+                        inBattleShop(player, scanner);
                     }
                 } else {
                     System.out.println("Tie. No damage.");
@@ -108,16 +166,16 @@ public class Battle {
         }
 
         if (player.isAlive()) {
-            System.out.println("\n=== VICTORY ===");
+            System.out.println("\nVICTORY!");
             return true;
         } else {
-            System.out.println("\n=== DEFEAT ===");
+            System.out.println("\nDEFEAT");
             return false;
         }
     }
 
     private static void inBattleShop(Player player, Scanner scanner) {
-        System.out.println("\n*** COMEBACK SHOP ***");
+        System.out.println("\n--- COMEBACK SHOP ---");
         System.out.println("Your coins: " + player.getCoins());
 
         List<ShopPerk> allPerks = new ArrayList<>();

@@ -22,7 +22,7 @@ public abstract class Combatant {
 
     public void increaseMaxHearts(int amount) {
         maxHearts += amount;
-        hearts += amount; // heal when max increases
+        hearts += amount;
     }
 
     public void resetHearts() {
@@ -33,6 +33,5 @@ public abstract class Combatant {
         return hearts > 0;
     }
 
-    // OOP: polymorphism hook
     public abstract Moves selectMove(Scanner scanner);
 }
